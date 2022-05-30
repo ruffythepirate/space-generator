@@ -1,14 +1,24 @@
 let imagedata = null
+let canvas; 
 window.onload = function() {
-  let canvas = document.getElementById("viewport")
+  canvas = document.getElementById("viewport")
   let context = canvas.getContext("2d");
 
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
-  generateStars(0.005);
+  generateStars(0.005, new SpeedRange(0.0, 1.0, 0.0, 0.0));
 
   animationLoop();
+}
+
+class SpeedRange {
+  constructor(minDX, maxDX, minDY, maxDY) {
+    this.minDX = minDX;
+    this.maxDX = maxDX;
+    this.minDY = minDY;
+    this.maxDY = maxDY;
+  }
 }
 
 function animationLoop() {
@@ -22,7 +32,8 @@ let stars = [];
 /**
  * Generates the stars that should be drawn. The density parameter calculates how common the stars should be.
  */
-function generateStars(density) {
+function generateStars(density, speedRange) {
+  speedRange = speedRange || new SpeedRange(0.0, 0.0, 0.0, 0.0);
   let width = window.innerWidth;
   let height = window.innerHeight;
 
@@ -31,23 +42,41 @@ function generateStars(density) {
       let randomNbr = Math.random()
 
       if(randomNbr < density) {
-        let star = createStar(x, y)
+        let star = createStar(x, y, speedRange)
         stars.push(star)
       }
     }
   }
 }
 
-function createStar(x, y) {
+function createStar(x, y, speedRange) {
   return {
     x,
     y,
+    dx : speedRange.minDX + (speedRange.maxDX - speedRange.minDX) * Math.random(),
+    dy : speedRange.minDY + (speedRange.maxDY - speedRange.minDY) * Math.random(),
     radius : Math.sqrt(Math.random() * 4),
     alpha : 1.0,
     decreasing : true,
     dRatio : Math.random() * 0.05
   }
 }
+
+function ensureStarInView(star) {
+  let width = canvas.width;
+  let height = canvas.height;
+
+  if(star.x < 0) {
+    star.x = width + star.x;
+  } else if (star.x > width) {
+    star.x = star.x % width;
+  }
+  if(star.y < 0) {
+    star.y += height
+  }
+  star.y = star.y % height;
+}
+
 
 function updateStars(stars) {
   for (let i = 0; i < stars.length; i++) {
@@ -65,6 +94,10 @@ function updateStars(stars) {
       if (star.alpha > 0.95)
       { star.decreasing = true; }
     }
+
+    star.x += star.dx;
+    star.y += star.dy;
+    ensureStarInView(star);
   }
 }
 
