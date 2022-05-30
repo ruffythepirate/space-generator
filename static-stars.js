@@ -29,9 +29,12 @@ window.onload = function() {
   drawImage();
 }
 
+window.addEventListener('resize', drawImage);
 
 function drawImage() {
   let canvas = document.getElementById("viewport")
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
   let context = canvas.getContext("2d");
   context.putImageData(imagedata, 0, 0);
 
